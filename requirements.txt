@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+geoalchemy2
+psycopg2-binary
+pydantic 
+shapely
+passlib[bcrypt]
+python-jose[cryptography]
+httpx
+pytest
+python-multipart
+strawberry-graphql[fastapi]
