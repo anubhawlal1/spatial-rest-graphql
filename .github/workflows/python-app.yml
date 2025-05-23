@@ -1,0 +1,39 @@
+name: Docker Image CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  docker:
+    runs-on: Main
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Pulling from git
+        run: |
+          cd /home/ubuntu/email-monitoring-service
+          sudo git pull origin main --ff
+
+      - name: Build image
+        run: |
+          cd /home/ubuntu/email-monitoring-service
+          sudo docker compose -f "docker-compose.yml" build
+      
+      - name: Down containers
+        run: |
+          cd /home/ubuntu/email-monitoring-service
+          sudo docker compose -f "docker-compose.yml" down
+
+      - name: Run containers
+        run: |
+          cd /home/ubuntu/email-monitoring-service
+          sudo docker compose -f "docker-compose.yml" up -d
+
+      - name: Slack Notification
+        if: always()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [ { "type": "divider" }, { "type": "section", "text": { "type": "mrkdwn", "text": "`@${{ github.actor }}` has started deploying `${{ github.head_ref }}`  to *dev* of `${{ github.repository }}` to Environment : *${{ github.job }}*  os : *ubuntu* \n\n\n\n Deoplyment: ${{ job.status }}" }, "accessory": { "type": "image", "image_url": "https://avatars.githubusercontent.com/${{ github.actor }}", "alt_text": "cute cat" } }, { "type": "section", "text": { "type": "mrkdwn", "text": "Latest Changes in this deployment: <https://github.com/adcuratio/email-monitoring-service/pull/${{ github.event.pull_request.number }}|Go to PR page>" } }, { "type": "divider" } ] }' https://hooks.slack.com/services/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
